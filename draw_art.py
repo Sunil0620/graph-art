@@ -69,9 +69,20 @@ def main():
     default_text = "HELLO WORLD!"
     text = input(f"Enter the message to draw [Default: '{default_text}']: ").strip() or default_text
     
-    default_year = 2024
-    year_str = input(f"Enter target year (e.g. 2024) [Default: {default_year}]: ").strip()
-    year = int(year_str) if year_str else default_year
+    default_year_choice = "rolling"
+    year_str = input(f"Enter target year (e.g. 2024, or 'rolling' for the last 12 months) [Default: '{default_year_choice}']: ").strip().lower()
+    
+    if not year_str or year_str == "rolling":
+        is_rolling = True
+        year = None
+    else:
+        is_rolling = False
+        try:
+            year = int(year_str)
+        except ValueError:
+            print("Invalid year format. Defaulting to 'rolling'.")
+            is_rolling = True
+            year = None
     
     default_commits = 20
     commits_str = input(f"Enter commits per pixel (10-50 recommended) [Default: {default_commits}]: ").strip()
@@ -86,8 +97,17 @@ def main():
     total_commits = active_pixels * commits_per_pixel
     
     # 2. Date Calculation
-    start_sunday = get_start_sunday(year)
-    print(f"Target Year: {year}")
+    if is_rolling:
+        today = datetime.date.today()
+        # Find the Sunday of the current week
+        days_to_subtract = (today.weekday() + 1) % 7
+        current_sunday = today - datetime.timedelta(days=days_to_subtract)
+        start_sunday = current_sunday - datetime.timedelta(weeks=52)
+        print("Target Year: Last 12 months (Rolling)")
+    else:
+        start_sunday = get_start_sunday(year)
+        print(f"Target Year: {year}")
+        
     print(f"Start Sunday: {start_sunday}")
     print(f"Active pixels (days): {active_pixels}")
     print(f"Total commits to be made: {total_commits}")
